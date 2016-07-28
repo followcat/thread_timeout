@@ -21,7 +21,7 @@ setup(name='thread_timeout',
       author_email='george.shuklin@gmail.com',
       url='https://github.com/amarao/thread_timeout',
       packages=find_packages(),
-      install_requires=['wrapt'],
+      install_requires=[],
       cmdclass = {'test': PyTest},
 
       license='LGPL',

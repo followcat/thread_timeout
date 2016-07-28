@@ -19,7 +19,7 @@ import threading
 import time
 import sys
 import ctypes
-import wrapt  # pip install wrapt, apt-get install python-wrapt
+import decorator
 from Queue import Queue
 '''
     thread_timeout decorator allows to run piece of the python code
@@ -106,8 +106,8 @@ class NotKillExecTimeout(ExecTimeout):
 
 
 def thread_timeout(delay, kill=True, kill_wait=0.04):
-    @wrapt.decorator
-    def wrapper(wrapped, instance, args, kwargs):
+    @decorator.decorator
+    def wrapper(wrapped, *args, **kwargs):
         queue = Queue()
 
         def inner_worker():
