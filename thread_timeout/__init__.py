@@ -43,14 +43,30 @@ from Queue import Queue
         except ExecTimeout:
             print ("NFS seems to be hung")
 
+    Example of the function call usage:
 
-    thread_timeout works by running specified function in separate
-    thread and waiting for timeout (or finalization) of the thread
-    to return value or raise exception.
+        def NFS_read(path):
+            file(path, 'r').read()
+
+        try:
+            result = thread_timeout_call(NFS_read, 10, kill=False,
+                                         args=('/broken_nfs/file',))
+            print("Result: %s" % result)
+        except ExecTimeout:
+            print ("NFS seems to be hung")
+
+
+
+    thread_timeout/thread_timeout_call works by running specified
+    function in separate thread and waiting for timeout (or finalization)
+    of the thread to return value or raise exception.
     If thread is not finished before timeout, thread_timeout will
     try to terminate thread according to kill value (see below).
 
     thread_timeout(timeout, kill=True, kill_wait=0.1)
+
+    thread_timeout_call(func, timeout, kill=True, kill_wait=0.1,
+                        args=tuple(), kwargs=dict())
 
     timeout - seconds, floating, how long to wait thread.
     kill - if True (default) attempt to terminate thread with function
@@ -84,7 +100,6 @@ def _kill_thread(thread):
     # within 32 python operations regardless of duration
     # (f.e. 32 x sleep(1), or 32 x sleep (0.01))
     # python3 works fine
-    import sys
     SE = ctypes.py_object(SystemExit)
     tr = ctypes.c_long(thread.ident)
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tr, SE)

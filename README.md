@@ -20,12 +20,28 @@ Example of the usage:
         print ("NFS seems to be hung")
 
 
+Example of the function call usage:
+
+    def NFS_read(path):
+        file(path, 'r').read()
+
+    try:
+        result = thread_timeout_call(NFS_read, 10, kill=False,
+                                     args=('/broken_nfs/file',))
+        print("Result: %s" % result)
+    except ExecTimeout:
+        print ("NFS seems to be hung")
+
+
 thread\_timeout works by running specified function in separate thread and waiting
 for timeout (or finalization) of the thread to return value or raise Exception.
 If thread is not finished before timeout, thread\_timeout may try to terminate
 thread according to kill\_wait value (see below).
 
 thread\_timeout(timeout, kill=True, kill\_wait=0.1)
+
+thread\_timeout\_call(func, timeout, kill=True, kill_wait=0.1,
+                    args=tuple(), kwargs=dict())
 
 timeout - seconds, floating, how long to wait thread.
 kill - if True (default) attempt to terminate thread with function
