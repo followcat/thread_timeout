@@ -19,6 +19,7 @@ import time
 import sys
 import ctypes
 import decorator
+import functools
 import threading
 from Queue import Queue
 '''
@@ -132,6 +133,32 @@ def parse_return(queue):
         return res[1]
     if res[0] == 'exception':
         raise res[1][0], res[1][1], res[1][2]
+
+
+def thread_timeout_call(func, delay, kill=True, kill_wait=0.04, args=None, kwargs=None):
+    queue = Queue()
+
+    def inner_func(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            queue.put(('success', result))
+        except:
+            e = sys.exc_info()
+            queue.put(('exception', e))
+
+    if args is None:
+        if kwargs is None:
+            inner_worker = functools.partial(inner_func)
+        else:
+            inner_worker = functools.partial(inner_func, **kwargs)
+    else:
+        if kwargs is None:
+            inner_worker = functools.partial(inner_func, *args)
+        else:
+            inner_worker = functools.partial(inner_func, *args, **kwargs)
+
+    thread_exec(inner_worker, delay, kill, kill_wait)
+    return parse_return(queue)
 
 
 def thread_timeout(delay, kill=True, kill_wait=0.04):
