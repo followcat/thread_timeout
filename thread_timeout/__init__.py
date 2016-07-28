@@ -15,11 +15,11 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from __future__ import print_function
-import threading
 import time
 import sys
 import ctypes
 import decorator
+import threading
 from Queue import Queue
 '''
     thread_timeout decorator allows to run piece of the python code
@@ -105,6 +105,35 @@ class NotKillExecTimeout(ExecTimeout):
     pass
 
 
+def thread_exec(func, delay, kill=True, kill_wait=0.04):
+    thread = threading.Thread(target=func)
+    thread.daemon = True
+    thread.start()
+    thread.join(delay)
+    if thread.isAlive():
+        if not kill:
+            raise NotKillExecTimeout(
+                "Timeout and no kill attempt")
+        _kill_thread(thread)
+        time.sleep(kill_wait)
+        # FIXME isAlive is giving fals positive results
+        if thread.isAlive():
+            raise FailedKillExecTimeout(
+                "Timeout, thread refuses to die in %s seconds" %
+                kill_wait)
+        else:
+            raise KilledExecTimeout(
+                "Timeout and thread was killed")
+
+
+def parse_return(queue):
+    res = queue.get()
+    if res[0] == 'success':
+        return res[1]
+    if res[0] == 'exception':
+        raise res[1][0], res[1][1], res[1][2]
+
+
 def thread_timeout(delay, kill=True, kill_wait=0.04):
     @decorator.decorator
     def wrapper(wrapped, *args, **kwargs):
@@ -117,27 +146,6 @@ def thread_timeout(delay, kill=True, kill_wait=0.04):
             except:
                 e = sys.exc_info()
                 queue.put(('exception', e))
-        thread = threading.Thread(target=inner_worker)
-        thread.daemon = True
-        thread.start()
-        thread.join(delay)
-        if thread.isAlive():
-            if not kill:
-                raise NotKillExecTimeout(
-                    "Timeout and no kill attempt")
-            _kill_thread(thread)
-            time.sleep(kill_wait)
-            # FIXME isAlive is giving fals positive results
-            if thread.isAlive():
-                raise FailedKillExecTimeout(
-                    "Timeout, thread refuses to die in %s seconds" %
-                    kill_wait)
-            else:
-                raise KilledExecTimeout(
-                    "Timeout and thread was killed")
-        res = queue.get()
-        if res[0] == 'success':
-            return res[1]
-        if res[0] == 'exception':
-            raise res[1][0], res[1][1], res[1][2]
+        thread_exec(inner_worker, delay, kill, kill_wait)
+        return parse_return(queue)
     return wrapper
