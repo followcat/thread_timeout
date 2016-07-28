@@ -4,7 +4,7 @@
 # This library is free software; you can redistribute it and/or
 # Modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
-# Version 2.1 of the License, or (at your option) any later version.
+# Version 3 of the License, or (at your option) any later version.
 #
 # This library is distributed in the hope that it will be useful,
 # But WITHOUT ANY WARRANTY; without even the implied warranty of
