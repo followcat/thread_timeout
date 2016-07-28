@@ -1,5 +1,7 @@
 #!/usr/bin/python
 from setuptools import setup, find_packages, Command
+
+
 class PyTest(Command):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
     def initialize_options(self):
@@ -7,8 +9,9 @@ class PyTest(Command):
     def finalize_options(self):
         pass
     def run(self):
-        import pytest
-        pytest.main('run_test.py')
+        import nose
+        nose.run(argv=['', 'run_test.py', '-v'])
+
 
 setup(name='thread_timeout',
       version='1.0',
