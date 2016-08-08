@@ -22,6 +22,10 @@ import decorator
 import functools
 import threading
 from Queue import Queue
+
+from core.exception import *
+
+
 '''
     thread_timeout decorator allows to run piece of the python code
     safely regardless of TASK_UNINTERRUPTIBLE issues ('D' state).
@@ -103,22 +107,6 @@ def _kill_thread(thread):
     SE = ctypes.py_object(SystemExit)
     tr = ctypes.c_long(thread.ident)
     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tr, SE)
-
-
-class ExecTimeout(BaseException):
-    pass
-
-
-class KilledExecTimeout(ExecTimeout):
-    pass
-
-
-class FailedKillExecTimeout(ExecTimeout):
-    pass
-
-
-class NotKillExecTimeout(ExecTimeout):
-    pass
 
 
 def thread_exec(func, delay, kill=True, kill_wait=0.04):
