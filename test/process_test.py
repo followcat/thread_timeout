@@ -69,31 +69,6 @@ def test3_call():
     assert process_timeout_call(func, 1, args=('OK',)) == 'OK'
 
 
-def test4():
-    ''' FailedKillExecTimeout
-    '''
-    @process_timeout(1)
-    def looong():
-        time.sleep(3)
-    try:
-        looong()
-        raise Exception('FailedKillExecTimeout was expected')
-    except FailedKillExecTimeout:
-        pass
-
-
-def test4_call():
-    ''' call: FailedKillExecTimeout
-    '''
-    def looong():
-        time.sleep(3)
-    try:
-        process_timeout_call(looong, 1)
-        raise Exception('call: FailedKillExecTimeout was expected')
-    except FailedKillExecTimeout:
-        pass
-
-
 def test5():
     ''' NotKillExecTimeout
     '''
@@ -204,85 +179,6 @@ def test8_call():
         res = process_timeout_call(obj.looong, 1, args=('OK',))
     except KilledExecTimeout:
         pass
-
-
-def test9():
-    '''Check if exceptions are carried properly
-    '''
-    @process_timeout(1, kill=False)
-    def exception(e):
-        raise e
-
-    exception_list = (
-                    OverflowError,
-                    ReferenceError,
-                    SyntaxError,
-                    ZeroDivisionError,
-                    FloatingPointError,
-                    BufferError,
-                    LookupError,
-                    AssertionError,
-                    AttributeError,
-                    TypeError,
-                    EOFError,
-                    IOError,
-                    ImportError,
-                    IndexError,
-                    KeyError,
-                    KeyboardInterrupt,
-                    MemoryError,
-                    NameError,
-                    NotImplementedError,
-                    OSError,
-                    UnboundLocalError,
-                    UnicodeError,
-                    ValueError,
-                    ExecTimeout
-                    )
-    for exc in exception_list:
-        try:
-            exception(exc)
-        except exc as e:
-            pass
-
-
-def test9_call():
-    '''call: Check if exceptions are carried properly
-    '''
-    def exception(e):
-        raise e
-
-    exception_list = (
-                    OverflowError,
-                    ReferenceError,
-                    SyntaxError,
-                    ZeroDivisionError,
-                    FloatingPointError,
-                    BufferError,
-                    LookupError,
-                    AssertionError,
-                    AttributeError,
-                    TypeError,
-                    EOFError,
-                    IOError,
-                    ImportError,
-                    IndexError,
-                    KeyError,
-                    KeyboardInterrupt,
-                    MemoryError,
-                    NameError,
-                    NotImplementedError,
-                    OSError,
-                    UnboundLocalError,
-                    UnicodeError,
-                    ValueError,
-                    ExecTimeout
-                    )
-    for exc in exception_list:
-        try:
-            process_timeout_call(exception, 1, kill=False, args=(exc,))
-        except exc as e:
-            pass
 
 
 def test10():

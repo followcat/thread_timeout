@@ -31,13 +31,16 @@ def _kill_process(process):
         process.terminate()
 
 
-def process_exec(func, delay, queue):
+def process_exec(func, delay, queue, kill=True):
     process = multiprocessing.Process(target=func)
     process.daemon = True
     process.start()
     try:
         res = queue.get(timeout=delay)
     except Queue.Empty:
+        if not kill:
+            raise NotKillExecTimeout(
+                "Timeout and no kill attempt")
         _kill_process(process)
         raise KilledExecTimeout(
                 "Timeout and process was killed")
@@ -50,7 +53,7 @@ def parse_return(res):
         raise res[1][0], res[1][1], res[1][2]
 
 
-def process_timeout_call(func, delay, args=None, kwargs=None):
+def process_timeout_call(func, delay, kill=True, args=None, kwargs=None):
     queue = multiprocessing.Queue()
 
     def inner_func(*args, **kwargs):
@@ -58,7 +61,7 @@ def process_timeout_call(func, delay, args=None, kwargs=None):
             result = func(*args, **kwargs)
             queue.put(('success', result))
         except:
-            e = sys.exc_info()[1]
+            e = sys.exc_info()
             queue.put(('exception', e))
 
     if args is None:
@@ -72,11 +75,11 @@ def process_timeout_call(func, delay, args=None, kwargs=None):
         else:
             inner_worker = functools.partial(inner_func, *args, **kwargs)
 
-    res = process_exec(inner_worker, delay, queue)
+    res = process_exec(inner_worker, delay, queue, kill=kill)
     return parse_return(res)
 
 
-def process_timeout(delay):
+def process_timeout(delay, kill=True):
     @decorator.decorator
     def wrapper(wrapped, *args, **kwargs):
         queue = multiprocessing.Queue()
@@ -88,6 +91,6 @@ def process_timeout(delay):
             except:
                 e = sys.exc_info()
                 queue.put(('exception', e))
-        res = process_exec(inner_worker, delay, queue)
+        res = process_exec(inner_worker, delay, queue, kill=kill)
         return parse_return(res)
     return wrapper
